@@ -40,17 +40,13 @@ public class OsMonitorUtils {
 
   public static String[] toCommand(String command, PangOsType os) {
     
-    String osCommand;
-    
     if(os == PangOsType.Linux) {
-//      osCommand = LINUX_COMMAND_PREFIX + "\"" + command + "\"";
       return new String[]{"/bin/sh", "-c", command};
     } else if(os == PangOsType.Windows) {
-      osCommand = WINDOWS_COMMAND_PREFIX + command;
+      return new String[]{"cmd", "/c", command};
     } else {
       throw new IllegalArgumentException("Os is not supported. " + os);
     }
-    return osCommand.split(" ");
   }
 
   public static String getCharset(PangOsType os) {
