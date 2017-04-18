@@ -44,7 +44,7 @@ public class CommonTypeExcutor extends TypeExcutor {
     Map<String, Object> valuesMap = (Map<String, Object>) config.get(ConfigConstants.value);
     for(String k:valuesMap.keySet()) {
       Map<String, Object> valueMap = (Map<String, Object>) valuesMap.get(k);
-      logger.info("value map : {}", valueMap);
+      logger.debug("value map : {}", valueMap);
       int keyColumn = 0;
       if(valueMap.get(ConfigConstants.keyCol) != null) {
         keyColumn = Integer.valueOf((String)valueMap.get(ConfigConstants.keyCol));
@@ -54,7 +54,7 @@ public class CommonTypeExcutor extends TypeExcutor {
       Boolean keyStrict = Boolean.valueOf((String)valueMap.get(ConfigConstants.keystrict));
       
       for(int i=offsetFrom; i<(offsetTo==0?lines.length:offsetTo); i++) {
-        logger.debug("lines[{}]:{}", i, lines[i]);
+        logger.trace("lines[{}]:{}", i, lines[i]);
         String[] split2;
         if(maxCol==0) {
           split2 = lines[i].trim().split("\\s+");

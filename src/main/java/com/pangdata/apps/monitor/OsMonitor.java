@@ -98,7 +98,7 @@ public class OsMonitor {
         if(prefix!=null && !prefix.isEmpty()) {
           data = OsMonitorUtils.concatPrefix(data, prefix);
         }
-        logger.debug("send data : " + data);
+        logger.info("send data : " + data);
         OsMonitorUtils.changeDataToNumber(data);
         pang.sendData(data);
       }
