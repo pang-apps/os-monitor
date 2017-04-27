@@ -11,16 +11,16 @@ You can monitor your cloud infrstructure and applications using <a href="https:/
 
 ## Screen shot
 ###### Realtime monitoring dashboard ######
-<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard.png" width="600" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard.png" width="500" />
 
 ###### Realtime monitoring dashboard on Mobile ######
-<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard-mobile.png" width="300" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard-mobile.png" width="200" />
 
 ###### Realtime monitoring devices ######
-<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/devices.png" width="600" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/devices.png" width="500" />
 
 ###### Realtime monitoring devices on Mobile ######
-<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/devices-m.png" width="300" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/devices-m.png" width="200" />
 
 ## Getting Started
 #### Sign up for Pangdata.com ####
