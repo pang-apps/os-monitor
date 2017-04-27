@@ -1,3 +1,11 @@
+
+###### Pangdata Cloud Monitoring Service  ######
+<img src="https://github.com/pang-apps/redis-monitor/blob/master/screen-shot/Cloud Monitoring Service.JPG" width="1000" />
+
+# Pang Data Cloud based Monitoring Service
+This application used Pangdata.com cloud service. Pangdata.com is cloud based monitoring and analysis SaaS platform. 
+You can monitor your cloud infrstructure and applications using <a href="https://github.com/pangdata/pang-sdk-java">Pang SDK
+
 ## Screen shot
 ###### Realtime monitoring dashboard ######
 <img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard.png" width="100%" />
