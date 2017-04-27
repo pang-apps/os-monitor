@@ -1,6 +1,9 @@
+# Monitoring your OS on mobile where ever you are.
+OS monitoring application for performance and prediction of failure.
+OS's every information can be monitored and analzed with Pangdata.com
 
 ###### Pangdata Cloud Monitoring Service  ######
-<img src="https://github.com/pang-apps/redis-monitor/blob/master/screen-shot/Cloud Monitoring Service.JPG" width="600" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/osmonitor-service.JPG" width="800" />
 
 # Pang Data Cloud based Monitoring Service
 This application used Pangdata.com cloud service. Pangdata.com is cloud based monitoring and analysis SaaS platform. 
@@ -8,16 +11,16 @@ You can monitor your cloud infrstructure and applications using <a href="https:/
 
 ## Screen shot
 ###### Realtime monitoring dashboard ######
-<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard.png" width="600" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard.png" width="500" />
 
 ###### Realtime monitoring dashboard on Mobile ######
-<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard-mobile.png" width="300" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/dashboard-mobile.png" width="200" />
 
 ###### Realtime monitoring devices ######
-<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/devices.png" width="600" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/devices.png" width="500" />
 
 ###### Realtime monitoring devices on Mobile ######
-<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/devices-m.png" width="300" />
+<img src="https://github.com/pang-apps/os-monitor/blob/master/screen-shot/devices-m.png" width="200" />
 
 ## Getting Started
 #### Sign up for Pangdata.com ####
