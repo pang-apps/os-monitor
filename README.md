@@ -1,6 +1,9 @@
+# Monitoring your OS on mobile where ever you are.
+OS monitoring application for performance and prediction of failure.
+OS's every information can be monitored and analzed with Pangdata.com
 
 ###### Pangdata Cloud Monitoring Service  ######
-<img src="https://github.com/pang-apps/redis-monitor/blob/master/screen-shot/Cloud Monitoring Service.JPG" width="600" />
+<img src="https://github.com/pang-apps/redis-monitor/blob/master/screen-shot/osmonitor-service.JPG" width="800" />
 
 # Pang Data Cloud based Monitoring Service
 This application used Pangdata.com cloud service. Pangdata.com is cloud based monitoring and analysis SaaS platform. 
