@@ -79,6 +79,10 @@ public class CommonTypeExcutor extends TypeExcutor {
         
         String column = split2[keyColumn];
         Object value = split2[valueColumn];
+        if(value == null || value.toString().isEmpty()) {
+          logger.warn("'{}' column has null value", column);
+          continue;
+        }
         if(sizeunit != null) {
           value = sizeunit.to(Long.valueOf((String)value));
         }
