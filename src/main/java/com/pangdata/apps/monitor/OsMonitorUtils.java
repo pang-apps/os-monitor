@@ -110,10 +110,10 @@ public class OsMonitorUtils {
     return props;
   }
 
-  public static Map<String, Object> concatPrefix(Map<String, Object> data, String prefix) {
+  public static Map<String, Object> concatPrefix(Map<String, Object> data, String prefix, String concatenator) {
     HashMap<String, Object> hashMap = new HashMap<String, Object>();
     for(String key : data.keySet()) {
-      hashMap.put(prefix+"_"+key, data.get(key));
+      hashMap.put(prefix+concatenator+key, data.get(key));
     }
     return hashMap;
   }

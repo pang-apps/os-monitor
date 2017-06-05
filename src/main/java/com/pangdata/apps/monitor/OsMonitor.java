@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -25,10 +26,12 @@ public class OsMonitor {
   
   private static AtomicBoolean running = new AtomicBoolean();
 
+  private static boolean test;
+
+  private static PangMqtt pang;
+
   public static void main(String[] args) throws Exception {
-    // Init Pang client
-    final Pang pang = new PangMqtt();
-    Properties properties = PangProperties.getProperties();
+    pang = new PangMqtt();
 
     // Check OS
     final PangOsType os = OsMonitorUtils.getOsType();
@@ -38,13 +41,10 @@ public class OsMonitor {
     final String charset = OsMonitorUtils.getCharset(os);
     logger.debug("Charset is {}.", charset);
 
-    final String prefix = properties.getProperty(ConfigConstants.PANG_PREFIX);
-    logger.debug("Prefix is {}.", prefix);
-
-    String defaultPeriodString = properties.getProperty(ConfigConstants.PANG_PERIOD);
+    String defaultPeriodString = (String) PangProperties.getProperty(ConfigConstants.PANG_PERIOD);
     final int defaultPeriod = getDefaultPeriod(defaultPeriodString);
 
-    String commandFilename = properties.getProperty(ConfigConstants.PANG_CONF);
+    String commandFilename = (String) PangProperties.getProperty(ConfigConstants.PANG_CONF);
     // Get commands & options
     Properties commandProperties = OsMonitorUtils.getProperties(commandFilename);
     final Map<String, Object> keyMap = OsMonitorUtils.propertiesToMap(commandProperties);
@@ -59,9 +59,19 @@ public class OsMonitor {
         configMap = new HashMap<String, Object>();
       }
       String command = cmdMap.get(key);
-      excuteCommandTimer(pang, configMap, command , os, charset, prefix, defaultPeriod, key);
+      excuteCommandTimer(pang, configMap, command , os, charset, PangProperties.getPrefix(), defaultPeriod, key);
     }
 
+    if(!PangProperties.isEnabledToSend()) {
+      long time = 100;
+      logger.debug("Running mode is test. {} seconds will be waited", time);
+      try {
+        TimeUnit.SECONDS.sleep(time);
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
   }
 
   private static int getDefaultPeriod(String defaultPeriodString) {
@@ -76,7 +86,7 @@ public class OsMonitor {
   private static void excuteCommandTimer(final Pang pang, final Map configMap, String command,
       PangOsType os, String charset, final String prefix, int defaultPeriod, String key) {
 
-    Timer timer = new Timer("Timer-cmd-"+key);
+    Timer timer = new Timer("cmd-"+key);
     String periodString = (String) configMap.get(ConfigConstants.period);
     int period;
     if (periodString != null && !periodString.isEmpty()) {
@@ -95,12 +105,19 @@ public class OsMonitor {
         TypeExcutor typeExcutor =
             typeExcutorFactory.getTypeExcutor((String) configMap.get(ConfigConstants.TYPE));
         Map<String, Object> data = typeExcutor.excute(configMap, result);
-        if (prefix != null && !prefix.isEmpty()) {
-          data = OsMonitorUtils.concatPrefix(data, prefix);
+        //If case of no result of command. Give a try. Case of Process restarted., can be error occurred. 
+        if(data == null) {
+          logger.warn("No data to send");
+          return;
         }
-        logger.info("send data : " + data);
+        if (prefix != null && !prefix.isEmpty()) {
+          data = OsMonitorUtils.concatPrefix(data, prefix, PangProperties.getConcatenator());
+        }
         OsMonitorUtils.changeDataToNumber(data);
-        pang.sendData(data);
+        logger.info("send data : " + data);
+        if(!test) {
+          pang.sendData(data);
+        }
       }
 
     };

@@ -25,7 +25,7 @@ public class CommandRunner extends TimerTask {
 
   protected String hangmsg;
   
-  final int commandTimeout = 5000;
+  final int commandTimeout = 10000;
 
   public CommandRunner() {}
 
@@ -50,7 +50,7 @@ public class CommandRunner extends TimerTask {
   }
 
   public String byProcessBuilder(final String[] command) throws IOException {
-
+    timeoutOccured = false;
     final Process process = new ProcessBuilder(command).start();
     final Timer timeoutTimer = new Timer("Timer-Timeout checker");
     timeoutTimer.schedule(new TimerTask() {
@@ -73,7 +73,8 @@ public class CommandRunner extends TimerTask {
     timeoutTimer.cancel();
     if (timeoutOccured) {
       logger.error("The process has timed out. command:" + command[2]);
-      System.exit(-1);
+      // In the case of timeout occurred. Do not exit. Keep going.
+      // System.exit(-1);
       throw new PangException("The process has timed out. Command:" + command[2]);
     }
 
@@ -148,7 +149,9 @@ public class CommandRunner extends TimerTask {
     try {
       result = byProcessBuilder(commands);
     } catch (IOException e) {
-      logger.error("IOException occured", e);
+      logger.error("Error occurred", e);
+    } catch (Exception e) {
+      logger.error("Error occurred", e);
     }
     commandCallback.call(result);
   }
@@ -159,6 +162,8 @@ public class CommandRunner extends TimerTask {
       result = byProcessBuilder(commands);
     } catch (IOException e) {
       logger.error("Got IO exception", e);
+    } catch (Exception e) {
+      logger.error("Error occurred", e);
     }
     logger.trace("result:{}", result);
     return result;

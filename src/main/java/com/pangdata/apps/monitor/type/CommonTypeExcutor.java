@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pangdata.apps.monitor.ConfigConstants;
+import com.pangdata.apps.monitor.SizeUnit;
 
 public class CommonTypeExcutor extends TypeExcutor {
   private final static Logger logger = LoggerFactory.getLogger(CommonTypeExcutor.class);
@@ -27,12 +28,14 @@ public class CommonTypeExcutor extends TypeExcutor {
         offsetFrom = Integer.valueOf((String)offsetMap.get(ConfigConstants.from));
       }
       if(offsetMap.get(ConfigConstants.to) != null) {
-        offsetFrom = Integer.valueOf((String)offsetMap.get(ConfigConstants.to));
+        offsetTo = Integer.valueOf((String)offsetMap.get(ConfigConstants.to));
       }
     }
     
+    if(result == null) {
+      return null;
+    }
     String[] lines = result.split("\n");
-    
     
     String maxColString = (String) config.get(ConfigConstants.maxCol);
     int maxCol = 0;
@@ -52,8 +55,17 @@ public class CommonTypeExcutor extends TypeExcutor {
       int valueColumn = Integer.valueOf((String)valueMap.get(ConfigConstants.valueCol));
       String devicename = (String)valueMap.get(ConfigConstants.devicename);
       Boolean keyStrict = Boolean.valueOf((String)valueMap.get(ConfigConstants.keystrict));
+      String sizeunitstr = (String)valueMap.get(ConfigConstants.sizeunit);
+      SizeUnit sizeunit = null;
+      if(sizeunitstr != null && sizeunitstr.length() > 0) {
+        sizeunit = SizeUnit.valueOf(sizeunitstr);
+      }      
       
       for(int i=offsetFrom; i<(offsetTo==0?lines.length:offsetTo); i++) {
+        if(offsetTo > (lines.length+1)) {
+          logger.warn("offsetTo: {}, lines size: {}", offsetTo, lines.length);
+          continue;
+        }
         logger.trace("lines[{}]:{}", i, lines[i]);
         String[] split2;
         if(maxCol==0) {
@@ -65,16 +77,21 @@ public class CommonTypeExcutor extends TypeExcutor {
           continue;
         }
         
+        String column = split2[keyColumn];
+        Object value = split2[valueColumn];
+        if(sizeunit != null) {
+          value = sizeunit.to(Long.valueOf((String)value));
+        }
         if(keys == null) {
           if(excludes != null) {
             if(keyStrict) {
-              if(excludes.contains(split2[keyColumn])) {
+              if(excludes.contains(column)) {
                 continue;
               }
             } else {
               boolean skip = false;
               for(String exclude:excludes) {
-                if(split2[keyColumn].indexOf(exclude) >= 0) {
+                if(column.indexOf(exclude) >= 0) {
                   skip = true;
                   break;
                 }
@@ -84,18 +101,18 @@ public class CommonTypeExcutor extends TypeExcutor {
               }
             }
           }
-          resultMap.put(getDevicename(devicename, split2[keyColumn]), split2[valueColumn]);
+          resultMap.put(getDevicename(devicename, column), value);
         } else {
           if(keyStrict) {
             if(keys.contains(split2[keyColumn])) {
               logger.debug(lines[i]);
-              resultMap.put(getDevicename(devicename, split2[keyColumn]), split2[valueColumn]);
+              resultMap.put(getDevicename(devicename, column), value);
             }
           } else {
             for(String key:keys) {
               if(split2[keyColumn].indexOf(key) >= 0) {
                 logger.debug(lines[i]);
-                resultMap.put(getDevicename(devicename, key), split2[valueColumn]);
+                resultMap.put(getDevicename(devicename, key), value);
                 break;
               }
             }

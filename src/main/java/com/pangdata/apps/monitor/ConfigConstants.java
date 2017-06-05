@@ -13,6 +13,7 @@ public class ConfigConstants {
   public static final String keyCol = "keyCol";
   public static final String valueCol = "valueCol";
   public static final String keystrict = "keystrict";
+  public static final String sizeunit = "sizeunit";
   public static final String devicename = "devicename";
   public static final String maxCol = "maxCol";
   
