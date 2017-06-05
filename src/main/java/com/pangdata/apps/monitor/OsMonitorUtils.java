@@ -101,7 +101,9 @@ public class OsMonitorUtils {
 
     InputStream is = SdkUtils.class.getResourceAsStream("/"+filename);
     if(is == null) {
-      throw new IOException("Could not load the file " + filename + " in your classpath");
+      String msg = "Could not load the file " + filename + " in your classpath";
+      logger.error(msg);
+      throw new IOException(msg);
     }
     Properties props = new Properties();
     props.load(is);
