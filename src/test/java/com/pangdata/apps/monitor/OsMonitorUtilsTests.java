@@ -3,22 +3,25 @@ package com.pangdata.apps.monitor;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.pangdata.apps.monitor.util.OsCheck;
+import com.pangdata.apps.monitor.util.OsMonitorUtils;
+import com.pangdata.apps.monitor.util.OsCheck.OSType;
+
 public class OsMonitorUtilsTests {
   
   private static final String thisCharset = "MS949";
-  PangOsType thisOsType = PangOsType.Windows;
+  OSType thisOsType = OSType.Windows;
   
   @Test
   public void getOsTypeTest() {
-    PangOsType osType = OsMonitorUtils.getOsType();
+    OSType osType = OsCheck.getOperatingSystemType();
     
     Assert.assertEquals(thisOsType, osType);
   }
   
   @Test
   public void getCharsetTest() {
-    PangOsType osType = OsMonitorUtils.getOsType();
-    String charset = OsMonitorUtils.getCharset(osType);
+    String charset = OsMonitorUtils.getCharset();
     
     Assert.assertEquals(thisCharset, charset);
   }

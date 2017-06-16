@@ -4,13 +4,17 @@ import java.io.IOException;
 
 import org.junit.Test;
 
+import com.pangdata.apps.monitor.runner.CommandRunner;
+import com.pangdata.apps.monitor.util.OsCheck;
+import com.pangdata.apps.monitor.util.OsMonitorUtils;
+import com.pangdata.apps.monitor.util.OsCheck.OSType;
 import com.pangdata.sdk.PangException;
 
 public class CommandRunnerTests {
 
   @Test
   public void normalCommandExcuteTest() throws IOException {
-    PangOsType osType = OsMonitorUtils.getOsType();
+    OSType osType = OsCheck.getOperatingSystemType();
     // String charset = OsMonitorUtils.getCharset(osType);
     String charset = "MS949";
     String command = "dir";
@@ -21,7 +25,7 @@ public class CommandRunnerTests {
 
   @Test(expected = PangException.class)
   public void illegalCommandExcuteTest() throws IOException {
-    PangOsType osType = OsMonitorUtils.getOsType();
+    OSType osType = OsCheck.getOperatingSystemType();
     // String charset = OsMonitorUtils.getCharset(osType);
     String charset = "MS949";
     String command = "asdfasdf";
@@ -32,7 +36,7 @@ public class CommandRunnerTests {
 
   @Test
   public void hangCommandExcuteTest() throws IOException {
-    PangOsType osType = OsMonitorUtils.getOsType();
+    OSType osType = OsCheck.getOperatingSystemType();
     // String charset = OsMonitorUtils.getCharset(osType);
     String charset = "MS949";
     String command = "cmd";

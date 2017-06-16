@@ -18,9 +18,11 @@ public class ConfigConstants {
   public static final String maxCol = "maxCol";
   
   public static final String COMMAND_PREFIX = "cmd";
+  public static final String TOP = "top";
   public static final String PANG_PERIOD = "pang.period";
   public static final String PANG_PREFIX = "pang.prefix";
   public static final String PANG_CONF = "pang.conf";
   public static final String TYPE = "type";
+  public static final String TOP_MAPPINGS = "mappings";
 
 }

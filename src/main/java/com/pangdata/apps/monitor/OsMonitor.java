@@ -4,15 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Timer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pangdata.apps.monitor.type.TypeExcutor;
-import com.pangdata.apps.monitor.type.TypeExcutorFactory;
+import com.pangdata.apps.monitor.runner.CmdType;
+import com.pangdata.apps.monitor.runner.CommandCallback;
+import com.pangdata.apps.monitor.runner.CommandRunner;
+import com.pangdata.apps.monitor.util.OsCheck;
+import com.pangdata.apps.monitor.util.OsCheck.OSType;
+import com.pangdata.apps.monitor.util.OsMonitorUtils;
 import com.pangdata.sdk.Pang;
 import com.pangdata.sdk.mqtt.PangMqtt;
 import com.pangdata.sdk.util.PangProperties;
@@ -22,106 +27,177 @@ public class OsMonitor {
 
   private static final Logger logger = LoggerFactory.getLogger(OsMonitor.class);
 
-  private static TypeExcutorFactory typeExcutorFactory = new TypeExcutorFactory();
+  public static boolean test;
+
+  private static Pang pang;
+
+  private static String charset;
+
+  private static ExecutorService executor;
+  private static boolean run;
   
-  private static AtomicBoolean running = new AtomicBoolean();
-
-  private static boolean test;
-
-  private static PangMqtt pang;
-
   public static void main(String[] args) throws Exception {
     pang = new PangMqtt();
 
     // Check OS
-    final PangOsType os = OsMonitorUtils.getOsType();
-    logger.debug("Os is {}.", os);
+    OSType ost = OsCheck.getOperatingSystemType();
+    logger.info("Os is {}.", ost.name());
 
     // Get terminal charset
-    final String charset = OsMonitorUtils.getCharset(os);
-    logger.debug("Charset is {}.", charset);
-
-    String defaultPeriodString = (String) PangProperties.getProperty(ConfigConstants.PANG_PERIOD);
-    final int defaultPeriod = getDefaultPeriod(defaultPeriodString);
+    charset = OsMonitorUtils.getCharset();
+    logger.info("Charset is {}.", charset);
 
     String commandFilename = (String) PangProperties.getProperty(ConfigConstants.PANG_CONF);
+    if (commandFilename == null || commandFilename.trim().length() == 0) {
+      if (ost == OSType.Windows)
+        commandFilename = "windows.properties";
+      else if (ost == OSType.Linux) {
+        commandFilename = "linux.properties";
+      }
+    }
+
+    logger.info("Command file is {}.", commandFilename);
+    if (commandFilename == null || commandFilename.trim().length() == 0) {
+      throw new IllegalStateException("commandFilename is null");
+    }
     // Get commands & options
     Properties commandProperties = OsMonitorUtils.getProperties(commandFilename);
     final Map<String, Object> keyMap = OsMonitorUtils.propertiesToMap(commandProperties);
-    final Map<String, String> cmdMap =
-        (Map<String, String>) keyMap.get(ConfigConstants.COMMAND_PREFIX);
-    
-    Set<String> cmdKeys = cmdMap.keySet();
-    
-    for(String key:cmdMap.keySet()) {
-      Map configMap = (Map)keyMap.get(key);
-      if(configMap == null) {
-        configMap = new HashMap<String, Object>();
-      }
-      String command = cmdMap.get(key);
-      excuteCommandTimer(pang, configMap, command , os, charset, PangProperties.getPrefix(), defaultPeriod, key);
-    }
 
-    if(!PangProperties.isEnabledToSend()) {
-      long time = 100;
+    runCmds(keyMap);
+
+    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+      
+      @Override
+      public void run() {
+        run = false;
+        if(executor != null) {
+          executor.shutdown();
+        }
+      }
+    }));
+ 
+    if (!PangProperties.isEnabledToSend()) {
+      long time = 10000;
       logger.debug("Running mode is test. {} seconds will be waited", time);
       try {
         TimeUnit.SECONDS.sleep(time);
       } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
   }
 
-  private static int getDefaultPeriod(String defaultPeriodString) {
-    int defaultPeriod = 0;
-    if (defaultPeriodString != null && !defaultPeriodString.isEmpty()) {
-      defaultPeriod = Integer.valueOf(defaultPeriodString);
-      logger.debug("Default period is {} seconds.", defaultPeriod);
+  private static String name;
+
+  private static void runCmds(final Map<String, Object> keyMap) {
+    final Map<String, String> cmdMap =
+        (Map<String, String>) keyMap.get(ConfigConstants.COMMAND_PREFIX);
+
+    if (cmdMap != null) {
+      int size = cmdMap.size();
+      
+      executor = Executors.newFixedThreadPool(size, new ThreadFactory() {
+        @Override
+        public Thread newThread(final Runnable r) {
+
+          Thread t = new Thread() {
+            public void run() {
+              r.run();
+            }
+          };
+          t.setName(name);
+          return t;
+        }
+      });
+
+      Set<String> cmdKeys = cmdMap.keySet();
+
+      for (final String key : cmdKeys) {
+        String command = cmdMap.get(key);
+        Map configMap = (Map) keyMap.get(key);
+        if (configMap == null) {
+          configMap = new HashMap<String, Object>();
+        }
+        CmdType ct = CmdType.cmd;
+
+        String cmdType = (String) configMap.get("cmdType");
+        if(cmdType != null) {
+          ct = CmdType.valueOf(cmdType);
+        }
+        if(ct == CmdType.cmd) {
+          name = ct.name() + "-" + key;
+        } else {
+          name = key + "-" + configMap.get("topn");
+        }
+        Executor e = new Executor(ct, configMap, command, key);
+        executor.submit(e);
+      }
     }
-    return defaultPeriod;
   }
+  
+  static CommandCallback cb = new CommandCallback() {
+    
+    @Override
+    public void call(Map<String, Object> data) {
+      if (data == null || data.size() == 0) {
+        logger.warn("No data to send");
+        return;
+      }
+      logger.debug("result : {}", data);
 
-  private static void excuteCommandTimer(final Pang pang, final Map configMap, String command,
-      PangOsType os, String charset, final String prefix, int defaultPeriod, String key) {
+      String prefix = PangProperties.getPrefix();
+      if (prefix != null && !prefix.isEmpty()) {
+        data = OsMonitorUtils.concatPrefix(data, prefix, PangProperties.getConcatenator());
+      }
+      OsMonitorUtils.changeDataToNumber(data);
+      logger.info("send data : " + data);
+      
+      if (!OsMonitor.test) {
+        pang.sendData(data);
+      }
+    }
+  };
+  
+  static class Executor implements Runnable {
 
-    Timer timer = new Timer("cmd-"+key);
-    String periodString = (String) configMap.get(ConfigConstants.period);
+    private CommandRunner runner;
+   
     int period;
-    if (periodString != null && !periodString.isEmpty()) {
-      period = Integer.valueOf(periodString);
-    } else {
-      period = defaultPeriod;
+
+    public Executor(CmdType cmdType, Map<String, Object> configMap, String command, String key) {
+      OSType os = OsCheck.getOperatingSystemType();
+      String periodString = (String) configMap.get(ConfigConstants.period);
+      if (periodString != null && !periodString.isEmpty()) {
+        period = Integer.valueOf(periodString) * 1000;
+      } else {
+        period = (int) PangProperties.getPeriod();
+      }
+      if (period <= 0) {
+        throw new IllegalStateException("Period is not set. key:" + key);
+      }
+      
+      this.runner = new CommandRunner(cb, cmdType, OsMonitorUtils.toCommand(command, os),
+          configMap, charset);
+      
     }
-    if (period <= 0) {
-      throw new IllegalStateException("Period is not set. key:" + key);
-    }
-
-
-    CommandCallback commandCallback = new CommandCallback() {
-
-      public void call(String result) {
-        TypeExcutor typeExcutor =
-            typeExcutorFactory.getTypeExcutor((String) configMap.get(ConfigConstants.TYPE));
-        Map<String, Object> data = typeExcutor.excute(configMap, result);
-        //If case of no result of command. Give a try. Case of Process restarted., can be error occurred. 
-        if(data == null) {
-          logger.warn("No data to send");
-          return;
+    
+    @Override
+    public void run() {
+      run = true;
+      while(run) {
+        try {
+          runner.run();
+        } catch (Exception e) {
+          logger.error("Runner has an error", e);
         }
-        if (prefix != null && !prefix.isEmpty()) {
-          data = OsMonitorUtils.concatPrefix(data, prefix, PangProperties.getConcatenator());
-        }
-        OsMonitorUtils.changeDataToNumber(data);
-        logger.info("send data : " + data);
-        if(!test) {
-          pang.sendData(data);
+        try {
+          TimeUnit.MILLISECONDS.sleep(period);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
         }
       }
+    }
 
-    };
-    timer.scheduleAtFixedRate(new CommandRunner(OsMonitorUtils.toCommand(command, os), commandCallback, charset), 1000, period * 1000);
   }
-
 }

@@ -6,8 +6,8 @@ import java.util.Properties;
 import org.junit.Test;
 
 import com.pangdata.apps.monitor.OsMonitorTestUtils;
-import com.pangdata.apps.monitor.OsMonitorUtils;
-import com.pangdata.apps.monitor.type.CommonTypeExcutor;
+import com.pangdata.apps.monitor.parser.CommonResultParser;
+import com.pangdata.apps.monitor.util.OsMonitorUtils;
 
 public class PartitionSizeMonitorTests {
   
@@ -39,8 +39,8 @@ public class PartitionSizeMonitorTests {
     Properties properties = new Properties();
     OsMonitorTestUtils.initProperties(properties, PROPERTIES);
     Map<String, Object> configMap = OsMonitorUtils.propertiesToMap(properties);
-    CommonTypeExcutor excutor = new CommonTypeExcutor();
-    Map sendPartitionData = excutor.excute((Map) configMap.get("df"), TEST_DATA);
+    CommonResultParser excutor = new CommonResultParser((Map) configMap.get("df"));
+    Map sendPartitionData = excutor.parse(TEST_DATA);
     System.out.println(sendPartitionData);
   }
 

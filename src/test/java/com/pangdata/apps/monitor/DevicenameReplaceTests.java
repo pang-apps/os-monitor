@@ -6,7 +6,7 @@ import java.nio.charset.Charset;
 
 import org.junit.Test;
 
-import com.pangdata.apps.monitor.type.CommonTypeExcutor;
+import com.pangdata.apps.monitor.util.OsMonitorUtils;
 
 public class DevicenameReplaceTests {
   
@@ -14,8 +14,8 @@ public class DevicenameReplaceTests {
   public void spaceReplaceTest() {
     String devicename1 = "devicename ";
     String devicename2 = "devicename  ";
-    String replaceSpaceCharacter1 = CommonTypeExcutor.replaceSpaceCharacter(devicename1);
-    String replaceSpaceCharacter2 = CommonTypeExcutor.replaceSpaceCharacter(devicename2);
+    String replaceSpaceCharacter1 = OsMonitorUtils.replaceSpaceCharacter(devicename1);
+    String replaceSpaceCharacter2 = OsMonitorUtils.replaceSpaceCharacter(devicename2);
     
     System.out.println(replaceSpaceCharacter1);
     System.out.println(replaceSpaceCharacter2);

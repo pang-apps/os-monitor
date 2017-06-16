@@ -1,4 +1,4 @@
-package com.pangdata.apps.monitor;
+package com.pangdata.apps.monitor.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +11,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pangdata.apps.monitor.runner.CommandRunner;
+import com.pangdata.apps.monitor.util.OsCheck.OSType;
 import com.pangdata.sdk.util.NumberUtils;
 import com.pangdata.sdk.util.SdkUtils;
 
@@ -22,38 +24,30 @@ public class OsMonitorUtils {
   private static final String WINDOWS_COMMAND_PREFIX = "cmd /c ";
   private static Properties props;
   
-  public static PangOsType getOsType() {
-    String osName = System.getProperty("os.name");
-    
-    if(osName == null || osName.isEmpty()) {
-      throw new IllegalStateException("Cannot find os name from system properties.");
-    }
-    
-    if(osName.toLowerCase().contains("windows")) {
-      return PangOsType.Windows;
-    } else if(osName.toLowerCase().contains("linux")) {
-      return PangOsType.Linux;
-    }
-    
-    throw new IllegalStateException("Os name is unclassified." + osName);
+  public static String replaceSpaceCharacter(String devicename) {
+    return devicename.replaceAll("[\\s+]", "");
   }
 
-  public static String[] toCommand(String command, PangOsType os) {
+  public static String replaceSpecialCharacter(String devicename) {
+    return devicename.replaceAll("[^a-zA-Z0-9_-]", "-");
+  }
+  
+  public static String[] toCommand(String command, OsCheck.OSType os) {
     
-    if(os == PangOsType.Linux) {
+    if(os == OSType.Linux) {
       return new String[]{"/bin/sh", "-c", command};
-    } else if(os == PangOsType.Windows) {
+    } else if(os == OSType.Windows) {
       return new String[]{"cmd", "/c", command};
     } else {
       throw new IllegalArgumentException("Os is not supported. " + os);
     }
   }
 
-  public static String getCharset(PangOsType os) {
-    String osName = System.getProperty("os.name");
+  public static String getCharset() {
     Charset encoding = Charset.defaultCharset();
-    if(os == PangOsType.Linux) {
-      String lang = new CommandRunner(toCommand(ECHO_LANG, os)).excute();
+    OSType ost = OsCheck.getOperatingSystemType();
+    if(ost == OsCheck.OSType.Linux) {
+      String lang = new CommandRunner(toCommand(ECHO_LANG, ost)).excute();
       String[] lines = lang.split(System.lineSeparator());
       Map<String, String> localeMap = new HashMap<String, String>();
       for(String line:lines) {
@@ -69,8 +63,8 @@ public class OsMonitorUtils {
       } else {
         return split[0];
       }
-    } else if(os == PangOsType.Windows) {
-      String chcpResult = new CommandRunner(toCommand(CHCP, os), "MS949").excute();
+    } else if(ost == OsCheck.OSType.Windows) {
+      String chcpResult = new CommandRunner(toCommand(CHCP, ost), "MS949").excute();
       logger.trace("chcp command result : {}", chcpResult);
       String[] split = chcpResult.split(" ");
       String charset = split[split.length-1].trim();
@@ -82,7 +76,7 @@ public class OsMonitorUtils {
       return charset;
     }
     
-    throw new IllegalArgumentException("Os is not supported. " + os);
+    throw new IllegalArgumentException("Os is not supported. " + ost);
   }
   
   public static boolean isNumber(String number) {

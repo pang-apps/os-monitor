@@ -8,8 +8,8 @@ import org.junit.Test;
 
 import com.pangdata.apps.monitor.OsMonitor;
 import com.pangdata.apps.monitor.OsMonitorTestUtils;
-import com.pangdata.apps.monitor.OsMonitorUtils;
-import com.pangdata.apps.monitor.type.CommonTypeExcutor;
+import com.pangdata.apps.monitor.parser.CommonResultParser;
+import com.pangdata.apps.monitor.util.OsMonitorUtils;
 
 public class VmstatTests {
   public final String TEST_DATA = 
@@ -36,8 +36,8 @@ public class VmstatTests {
     Properties properties = new Properties();
     OsMonitorTestUtils.initProperties(properties, PROPERTIES);
     Map<String, Object> configMap = OsMonitorUtils.propertiesToMap(properties);
-    CommonTypeExcutor excutor = new CommonTypeExcutor();
-    Map sendPartitionData = excutor.excute((Map) configMap.get("vmstat"), TEST_DATA);
+    CommonResultParser excutor = new CommonResultParser((Map) configMap.get("vmstat"));
+    Map sendPartitionData = excutor.parse(TEST_DATA);
     System.out.println(sendPartitionData);
   }
 }
