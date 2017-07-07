@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.pangdata.apps.monitor.ConfigConstants;
 import com.pangdata.apps.monitor.util.OsMonitorUtils;
 import com.pangdata.sdk.util.PangProperties;
+import com.pangdata.sdk.util.SdkUtils;
 import com.pangdata.sdk.util.SizeUnit;
 
 public class CommonResultParser extends ResultParser {
@@ -80,7 +81,11 @@ public class CommonResultParser extends ResultParser {
       if (sizeunitstr != null && sizeunitstr.length() > 0) {
         sizeunit = SizeUnit.valueOf(sizeunitstr.trim());
       }
+      String tag = (String) valueMap.get(PangProperties.Cons_tag);
+      String desc = (String) valueMap.get(PangProperties.Cons_desc);
+      String title = (String) valueMap.get(PangProperties.Cons_title);
 
+      
       for (int i = offsetFrom; i < (offsetTo == 0 ? lines.length : offsetTo); i++) {
         if (offsetTo > (lines.length + 1)) {
           logger.warn("offsetTo: {}, lines size: {}", offsetTo, lines.length);
@@ -126,7 +131,9 @@ public class CommonResultParser extends ResultParser {
           if (sizeunit != null) {
             value = sizeunit.to(Long.valueOf((String) value));
           }
-          resultMap.put(getDevicename(devicename, column), value);
+          devicename = SdkUtils.getDevicename(devicename, column);
+          resultMap.put(devicename, value);
+          addDeviceMeta(devicename, value, tag, desc, title, column);
         } else {
           if (keyStrict) {
             if (keys.contains(split2[keyColumn])) {
@@ -134,7 +141,9 @@ public class CommonResultParser extends ResultParser {
               if (sizeunit != null) {
                 value = sizeunit.to(Long.valueOf((String) value));
               }
-              resultMap.put(getDevicename(devicename, column), value);
+              devicename = SdkUtils.getDevicename(devicename, column);
+              resultMap.put(devicename, value);
+              addDeviceMeta(devicename, value, tag, desc, title, column);
             }
           } else {
             for (String key : keys) {
@@ -143,7 +152,9 @@ public class CommonResultParser extends ResultParser {
                 if (sizeunit != null) {
                   value = sizeunit.to(Long.valueOf((String) value));
                 }
-                resultMap.put(getDevicename(devicename, key), value);
+                devicename = SdkUtils.getDevicename(devicename, key);
+                resultMap.put(devicename, value);
+                addDeviceMeta(devicename, value, tag, desc, title, key);
                 break;
               }
             }
@@ -155,14 +166,22 @@ public class CommonResultParser extends ResultParser {
     return resultMap;
   }
 
-  private String getDevicename(String devicename, String...args) {
-    for(String arg:args) {
-      devicename = devicename.replace("{}", arg);
+  protected void addDeviceMeta(String devicename, Object value, String tag, String desc, String title, String key) {
+    Map<String, Object> deviceMeta = PangProperties.getDeviceMeta(devicename);
+    if(deviceMeta == null) {
+      deviceMeta = new HashMap<String, Object> ();
+      deviceMeta.put(PangProperties.Cons_value, value);
+      if(tag != null) {
+        deviceMeta.put(PangProperties.Cons_tag, tag);
+      }
+      if(desc != null) {      
+        deviceMeta.put(PangProperties.Cons_desc, desc);
+      }
+      if(title != null) {
+        deviceMeta.put(PangProperties.Cons_title, SdkUtils.replace(title, key));
+      }
+      PangProperties.setDeviceMeta(devicename, deviceMeta);
     }
-    devicename = OsMonitorUtils.replaceSpecialCharacter(devicename);
-    devicename = OsMonitorUtils.replaceSpaceCharacter(devicename);
-    
-    return devicename;
   }
 
 }

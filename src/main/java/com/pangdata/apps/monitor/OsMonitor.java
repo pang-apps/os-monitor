@@ -146,10 +146,6 @@ public class OsMonitor {
       }
       logger.debug("result : {}", data);
 
-      String prefix = PangProperties.getPrefix();
-      if (prefix != null && !prefix.isEmpty()) {
-        data = OsMonitorUtils.concatPrefix(data, prefix, PangProperties.getConcatenator());
-      }
       OsMonitorUtils.changeDataToNumber(data);
       logger.info("send data : " + data);
       

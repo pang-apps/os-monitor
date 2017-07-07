@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.pangdata.apps.monitor.runner.CommandRunner;
 import com.pangdata.apps.monitor.util.OsCheck.OSType;
 import com.pangdata.sdk.util.NumberUtils;
+import com.pangdata.sdk.util.PangProperties;
 import com.pangdata.sdk.util.SdkUtils;
 
 public class OsMonitorUtils {
@@ -23,14 +24,6 @@ public class OsMonitorUtils {
   private static final String LINUX_COMMAND_PREFIX = "/bin/sh -c ";
   private static final String WINDOWS_COMMAND_PREFIX = "cmd /c ";
   private static Properties props;
-  
-  public static String replaceSpaceCharacter(String devicename) {
-    return devicename.replaceAll("[\\s+]", "");
-  }
-
-  public static String replaceSpecialCharacter(String devicename) {
-    return devicename.replaceAll("[^a-zA-Z0-9_-]", "-");
-  }
   
   public static String[] toCommand(String command, OsCheck.OSType os) {
     
@@ -106,14 +99,6 @@ public class OsMonitorUtils {
     return props;
   }
 
-  public static Map<String, Object> concatPrefix(Map<String, Object> data, String prefix, String concatenator) {
-    HashMap<String, Object> hashMap = new HashMap<String, Object>();
-    for(String key : data.keySet()) {
-      hashMap.put(prefix+concatenator+key, data.get(key));
-    }
-    return hashMap;
-  }
-
   public static Map<String, Object> propertiesToMap(Properties properties) {
     Map<String, Object> commandMap = new HashMap<String, Object>();
     
@@ -157,6 +142,4 @@ public class OsMonitorUtils {
       data.put(key, changedValue);
     }
   }
-  
-  
 }

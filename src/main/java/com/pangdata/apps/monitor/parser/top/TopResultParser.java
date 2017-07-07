@@ -16,6 +16,7 @@ import com.pangdata.apps.monitor.util.OsCheck;
 import com.pangdata.apps.monitor.util.OsCheck.OSType;
 import com.pangdata.sdk.util.NumberUtils;
 import com.pangdata.sdk.util.PangProperties;
+import com.pangdata.sdk.util.SdkUtils;
 import com.pangdata.sdk.util.SizeUnit;
 
 // For windows
@@ -103,7 +104,6 @@ public class TopResultParser extends CommonResultParser{
       Map<String, Object> detail = process.getKey();
       String name = (String) detail.get("name");
       double cpu = (double)detail.get("cpu");
-
       // Process Monitoring
       if(monitor != null && monitor.contains(name)) {
         getDetail(monitor_process, detail, name, cpu);
@@ -122,28 +122,47 @@ public class TopResultParser extends CommonResultParser{
    
     long currentTimeMillis = System.currentTimeMillis();
     sum = NumberUtils.rountTo2decimal(sum);
+    if(sum > 100) {
+      sum = 100.0;
+    }
+    //Snapshot
     if(sum>=snapshot && snapshot > 0) {
       if((currentTimeMillis - lastSnapshotted) > this.snapshot_interval) {
         tops.insert(0, "CPU Usage="+sum+"%");
-        result.put((String) config.get("devicename"), tops.toString());
+        String devicename = SdkUtils.getDevicename((String) config.get("devicename"));
+        String value = tops.toString();
+        result.put(devicename, value);
+        addDeviceMeta(devicename, value, null, null, null, null);
         lastSnapshotted = currentTimeMillis;
       }
     }
+    //Monitor
     if((currentTimeMillis - lastMonitored) > this.monitor_interval) {
       result.putAll(monitor_process);
       lastMonitored = currentTimeMillis;
     }
+    //CPU
     if((currentTimeMillis - lastCpu) > this.cpu_interval) {
-      result.put("cpu-usage", sum);
+      String devicename = SdkUtils.getDevicename("cpu"+PangProperties.getConcatenator()+"usage");
+      result.put(devicename, sum);
+      addDeviceMeta(devicename, sum, null, null, null, null);
       lastCpu = currentTimeMillis;
     }
     return result; 
   }
+  
   private void getDetail(Map<String, Object> data, Map<String, Object> detail, String name,
       double cpu) {
-    data.put(name+"-cpu", cpu);
-    data.put(name+"-tcount", detail.get("tcount"));
-    data.put(name+"-mem", SizeUnit.KB.to2((long) detail.get("mem")));
+    String devicename = SdkUtils.getDevicename(name+PangProperties.getConcatenator()+"cpu");
+    addDeviceMeta(devicename, cpu, null, null, null, null);
+    data.put(devicename, cpu);
+    devicename = SdkUtils.getDevicename(name+PangProperties.getConcatenator()+"tcount");
+    addDeviceMeta(devicename, detail.get("tcount"), null, null, null, null);
+    data.put(devicename, detail.get("tcount"));
+    devicename = SdkUtils.getDevicename(name+PangProperties.getConcatenator()+"mem");
+    long to2 = SizeUnit.KB.to2((long) detail.get("mem"));
+    data.put(devicename, to2);
+    addDeviceMeta(devicename, to2, null, null, null, null);
 //    data.put(name+"-ioread", SizeUnit.KB.to((long) detail.get("ioread")));
 //    data.put(name+"-iowrite", SizeUnit.KB.to((long) detail.get("iowrite")));
   }

@@ -11,27 +11,7 @@ import com.pangdata.apps.monitor.util.OsMonitorUtils;
 public class DevicenameReplaceTests {
   
   @Test
-  public void spaceReplaceTest() {
-    String devicename1 = "devicename ";
-    String devicename2 = "devicename  ";
-    String replaceSpaceCharacter1 = OsMonitorUtils.replaceSpaceCharacter(devicename1);
-    String replaceSpaceCharacter2 = OsMonitorUtils.replaceSpaceCharacter(devicename2);
-    
-    System.out.println(replaceSpaceCharacter1);
-    System.out.println(replaceSpaceCharacter2);
-  }
-  
-  @Test
-  public void regexTest() {
-    String devicename = "devicename ";
-    String replaceAll = devicename.replaceAll("[\\s+]", "");
-    System.out.println(devicename);
-    System.out.println(replaceAll);
-  }
-  
-  @Test
   public void test() {
-
     System.out.println("Default Charset=" + Charset.defaultCharset());
     System.setProperty("file.encoding", "Latin-1");
     System.out.println("file.encoding=" + System.getProperty("file.encoding"));

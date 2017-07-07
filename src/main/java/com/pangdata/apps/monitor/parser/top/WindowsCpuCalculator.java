@@ -39,23 +39,28 @@ public class WindowsCpuCalculator extends AbstractCpuCalculator {
       String name = item.getKey();
       Map<String, Object> detail = item.getValue();
       
-       Process process = processes.get(name);
+       Process prv = processes.get(name);
        double cpu = 0;
-       if(process == null) {
-         process = new Process();
-         process.processedTime = (long) detail.get("cpu");
-         process.timestamp = (long) detail.remove("timestamp");
-         processes.put(name, process);
+       if(prv == null) {
+         prv = new Process();
+         prv.processedTime = (long) detail.get("cpu");
+         prv.timestamp = (long) detail.remove("timestamp");
+         processes.put(name, prv);
        } else {
-         Long currentProcessedTime = (Long) detail.get("cpu");
-         Long currentTimestamp = (Long) detail.remove("timestamp");
-         cpu = ((float)(currentProcessedTime - process.processedTime) / (float)(currentTimestamp - process.timestamp)) * 100.f;
+         long currentProcessedTime = (long) detail.get("cpu");
+         long currentTimestamp = (long) detail.remove("timestamp");
+         long processed = currentProcessedTime - prv.processedTime;
+         cpu = ((float)(processed) / (float)(currentTimestamp - prv.timestamp)) * 100.f;
          cpu = cpu / cores;
          cpu = NumberUtils.rountTo2decimal(cpu);
+         prv.timestamp = currentTimestamp;
+         prv.processedTime = currentProcessedTime;
        }
        if(cpu < 0) {
          logger.debug("Name: {}, CPU: {}", name, cpu);
          cpu = 0;
+       } else if(cpu >= 100) {
+         cpu = 99.0;
        }
        detail.put("cpu", cpu);
     }
