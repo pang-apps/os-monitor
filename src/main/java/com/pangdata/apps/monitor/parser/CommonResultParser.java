@@ -83,8 +83,6 @@ public class CommonResultParser extends ResultParser {
       }
       String tag = (String) valueMap.get(PangProperties.Cons_tag);
       String desc = (String) valueMap.get(PangProperties.Cons_desc);
-      String title = (String) valueMap.get(PangProperties.Cons_title);
-
       
       for (int i = offsetFrom; i < (offsetTo == 0 ? lines.length : offsetTo); i++) {
         if (offsetTo > (lines.length + 1)) {
@@ -133,7 +131,7 @@ public class CommonResultParser extends ResultParser {
           }
           devicename = SdkUtils.getDevicename(devicename, column);
           resultMap.put(devicename, value);
-          addDeviceMeta(devicename, value, tag, desc, title, column);
+          addDeviceMeta(devicename, value, tag, desc, column);
         } else {
           if (keyStrict) {
             if (keys.contains(split2[keyColumn])) {
@@ -143,7 +141,7 @@ public class CommonResultParser extends ResultParser {
               }
               devicename = SdkUtils.getDevicename(devicename, column);
               resultMap.put(devicename, value);
-              addDeviceMeta(devicename, value, tag, desc, title, column);
+              addDeviceMeta(devicename, value, tag, desc, column);
             }
           } else {
             for (String key : keys) {
@@ -154,7 +152,7 @@ public class CommonResultParser extends ResultParser {
                 }
                 devicename = SdkUtils.getDevicename(devicename, key);
                 resultMap.put(devicename, value);
-                addDeviceMeta(devicename, value, tag, desc, title, key);
+                addDeviceMeta(devicename, value, tag, desc, key);
                 break;
               }
             }
@@ -166,7 +164,7 @@ public class CommonResultParser extends ResultParser {
     return resultMap;
   }
 
-  protected void addDeviceMeta(String devicename, Object value, String tag, String desc, String title, String key) {
+  protected void addDeviceMeta(String devicename, Object value, String tag, String desc, String key) {
     Map<String, Object> deviceMeta = PangProperties.getDeviceMeta(devicename);
     if(deviceMeta == null) {
       deviceMeta = new HashMap<String, Object> ();
@@ -176,9 +174,6 @@ public class CommonResultParser extends ResultParser {
       }
       if(desc != null) {      
         deviceMeta.put(PangProperties.Cons_desc, desc);
-      }
-      if(title != null) {
-        deviceMeta.put(PangProperties.Cons_title, SdkUtils.replace(title, key));
       }
       PangProperties.setDeviceMeta(devicename, deviceMeta);
     }

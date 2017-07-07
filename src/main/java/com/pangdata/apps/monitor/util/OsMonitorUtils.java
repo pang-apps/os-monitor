@@ -110,7 +110,8 @@ public class OsMonitorUtils {
       for(int i=0; i<split.length; i++) {
         //last index
         if(i == split.length-1) {
-          cursor.put(split[i], properties.get(keyObject));
+          Object object = properties.get(keyObject);
+          cursor.put(split[i], object);
           break;
         }
         

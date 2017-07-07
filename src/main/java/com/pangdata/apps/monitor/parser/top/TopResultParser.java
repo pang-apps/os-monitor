@@ -43,17 +43,20 @@ public class TopResultParser extends CommonResultParser{
  
   public TopResultParser(Map config) {
     super(config);
-    int monitorinterval = Integer.parseInt((String)config.get("monitorInterval"));
+    Map process = (Map) config.get("process");
+    int monitorinterval = Integer.parseInt((String)process.get("monitorInterval"));
     if(monitorinterval > 1) {
       this.monitor_interval = monitorinterval * 1000;
     }
     
-    int snapshotinterval = Integer.parseInt((String)config.get("snapshotInterval"));
+    Map snapshot = (Map) config.get("snapshot");
+    int snapshotinterval = Integer.parseInt((String)snapshot.get("snapshotInterval"));
     if(snapshotinterval > 1) {
       this.snapshot_interval = snapshotinterval * 1000;
     }
     
-    int cpuInterval = Integer.parseInt((String)config.get("cpuInterval"));
+    Map cpu = (Map) config.get("cpu");
+    int cpuInterval = Integer.parseInt((String)cpu.get("cpuInterval"));
     if(cpuInterval > 1) {
       this.cpu_interval = cpuInterval * 1000;
     }
@@ -97,8 +100,12 @@ public class TopResultParser extends CommonResultParser{
     double sum = 0;
     int count = 0;
     
-    int snapshot = Integer.parseInt((String)config.get("snapshotOnCpuUsage"));
-    Set<String> monitor = PangProperties.getList(config.get("monitor"));
+    Map snapshot = (Map) config.get("snapshot");
+    Map map_cpu = (Map) config.get("cpu");
+    Map map_process = (Map) config.get("process");
+    
+    int snapshotOnCpuUsage = Integer.parseInt((String)snapshot.get("snapshotOnCpuUsage"));
+    Set<String> monitor = PangProperties.getList(map_process.get("monitor"));
     while(iterator.hasNext()) {
       Entry<Map<String, Object>, Double> process = iterator.next();
       Map<String, Object> detail = process.getKey();
@@ -106,10 +113,10 @@ public class TopResultParser extends CommonResultParser{
       double cpu = (double)detail.get("cpu");
       // Process Monitoring
       if(monitor != null && monitor.contains(name)) {
-        getDetail(monitor_process, detail, name, cpu);
+        getDetail(monitor_process, detail, name, cpu, map_process);
       }
       sum+=cpu;
-      if(snapshot > 0) {
+      if(snapshotOnCpuUsage > 0) {
         if(count < topn) {
           //          tops.put(name, name+":cpu="+cpu+",mem="+SizeUnit.KB.to((long) detail.get("mem"))+",ioread="+SizeUnit.KB.to((long) detail.get("ioread"))+",iowrite="+SizeUnit.KB.to((long) detail.get("iowrite"))+",tcount="+detail.get("tcount"));
           tops.append("|");
@@ -126,13 +133,13 @@ public class TopResultParser extends CommonResultParser{
       sum = 100.0;
     }
     //Snapshot
-    if(sum>=snapshot && snapshot > 0) {
+    if(sum>=snapshotOnCpuUsage && snapshotOnCpuUsage > 0) {
       if((currentTimeMillis - lastSnapshotted) > this.snapshot_interval) {
         tops.insert(0, "CPU Usage="+sum+"%");
-        String devicename = SdkUtils.getDevicename((String) config.get("devicename"));
+        String devicename = SdkUtils.getDevicename((String) snapshot.get("devicename"));
         String value = tops.toString();
         result.put(devicename, value);
-        addDeviceMeta(devicename, value, null, null, null, null);
+        addDeviceMeta(devicename, value, (String) snapshot.get("tag"), (String) snapshot.get("desc"), null);
         lastSnapshotted = currentTimeMillis;
       }
     }
@@ -141,28 +148,34 @@ public class TopResultParser extends CommonResultParser{
       result.putAll(monitor_process);
       lastMonitored = currentTimeMillis;
     }
+    
     //CPU
     if((currentTimeMillis - lastCpu) > this.cpu_interval) {
-      String devicename = SdkUtils.getDevicename("cpu"+PangProperties.getConcatenator()+"usage");
+      String devicename = SdkUtils.getDevicename((String) map_cpu.get("devicename"));
       result.put(devicename, sum);
-      addDeviceMeta(devicename, sum, null, null, null, null);
+      addDeviceMeta(devicename, sum, (String) map_cpu.get("tag"), (String) map_cpu.get("desc"), null);
       lastCpu = currentTimeMillis;
     }
     return result; 
   }
   
   private void getDetail(Map<String, Object> data, Map<String, Object> detail, String name,
-      double cpu) {
+      double cpu, Map map_process) {
+    Map map_cpu = (Map) map_process.get("cpu");
     String devicename = SdkUtils.getDevicename(name+PangProperties.getConcatenator()+"cpu");
-    addDeviceMeta(devicename, cpu, null, null, null, null);
+    addDeviceMeta(devicename, cpu, (String) map_cpu.get("tag"), (String) map_cpu.get("desc"), null);    
     data.put(devicename, cpu);
+    
     devicename = SdkUtils.getDevicename(name+PangProperties.getConcatenator()+"tcount");
-    addDeviceMeta(devicename, detail.get("tcount"), null, null, null, null);
+    Map map_threads = (Map) map_process.get("thread");
+    addDeviceMeta(devicename, detail.get("tcount"), (String) map_threads.get("tag"), (String) map_threads.get("desc"), null);
     data.put(devicename, detail.get("tcount"));
+    
     devicename = SdkUtils.getDevicename(name+PangProperties.getConcatenator()+"mem");
+    Map map_mem = (Map) map_process.get("mem");
     long to2 = SizeUnit.KB.to2((long) detail.get("mem"));
     data.put(devicename, to2);
-    addDeviceMeta(devicename, to2, null, null, null, null);
+    addDeviceMeta(devicename, to2, (String) map_mem.get("tag"), (String) map_mem.get("desc"), null);
 //    data.put(name+"-ioread", SizeUnit.KB.to((long) detail.get("ioread")));
 //    data.put(name+"-iowrite", SizeUnit.KB.to((long) detail.get("iowrite")));
   }
