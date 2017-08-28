@@ -128,7 +128,9 @@ public class OsMonitor {
         if(ct == CmdType.cmd) {
           name = ct.name() + "-" + key;
         } else {
-          name = key + "-" + configMap.get("topn");
+          
+          Map snapshotMap = (Map) configMap.get("snapshot");
+          name = key + "-" + snapshotMap.get("topn");
         }
         Executor e = new Executor(ct, configMap, command, key);
         executor.submit(e);
