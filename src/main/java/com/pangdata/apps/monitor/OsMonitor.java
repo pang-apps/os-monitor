@@ -19,7 +19,7 @@ import com.pangdata.apps.monitor.util.OsCheck;
 import com.pangdata.apps.monitor.util.OsCheck.OSType;
 import com.pangdata.apps.monitor.util.OsMonitorUtils;
 import com.pangdata.sdk.Pang;
-import com.pangdata.sdk.mqtt.PangMqtt;
+import com.pangdata.sdk.mqtt.PangMqttV2;
 import com.pangdata.sdk.util.PangProperties;
 
 
@@ -37,7 +37,7 @@ public class OsMonitor {
   private static boolean run;
   
   public static void main(String[] args) throws Exception {
-    pang = new PangMqtt();
+    pang = new PangMqttV2();
 
     // Check OS
     OSType ost = OsCheck.getOperatingSystemType();
@@ -128,10 +128,10 @@ public class OsMonitor {
         if(ct == CmdType.cmd) {
           name = ct.name() + "-" + key;
         } else {
-          
           Map snapshotMap = (Map) configMap.get("snapshot");
           name = key + "-" + snapshotMap.get("topn");
         }
+        logger.info("Cmd to execute: {}", name);
         Executor e = new Executor(ct, configMap, command, key);
         executor.submit(e);
       }

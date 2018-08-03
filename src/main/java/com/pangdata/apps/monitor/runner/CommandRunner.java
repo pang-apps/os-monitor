@@ -13,13 +13,10 @@ import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pangdata.apps.monitor.OsMonitor;
 import com.pangdata.apps.monitor.TimeOutException;
 import com.pangdata.apps.monitor.parser.ParserFactory;
 import com.pangdata.apps.monitor.parser.ResultParser;
-import com.pangdata.apps.monitor.util.OsMonitorUtils;
 import com.pangdata.sdk.PangException;
-import com.pangdata.sdk.util.PangProperties;
 
 public class CommandRunner extends TimerTask {
   private static final Logger logger = LoggerFactory.getLogger(CommandRunner.class);

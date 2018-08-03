@@ -44,9 +44,11 @@ public class TopResultParser extends CommonResultParser{
   public TopResultParser(Map config) {
     super(config);
     Map process = (Map) config.get("process");
-    int monitorinterval = Integer.parseInt((String)process.get("monitorInterval"));
-    if(monitorinterval > 1) {
-      this.monitor_interval = monitorinterval * 1000;
+    if(process != null && process.size() > 0) {
+      int monitorinterval = Integer.parseInt((String)process.get("monitorInterval"));
+      if(monitorinterval > 1) {
+        this.monitor_interval = monitorinterval * 1000;
+      }
     }
     
     Map snapshot = (Map) config.get("snapshot");
@@ -105,7 +107,10 @@ public class TopResultParser extends CommonResultParser{
     Map map_process = (Map) config.get("process");
     
     int snapshotOnCpuUsage = Integer.parseInt((String)snapshot.get("snapshotOnCpuUsage"));
-    Set<String> monitor = PangProperties.getList(map_process.get("monitor"));
+    Set<String> monitor = null;
+    if(map_process != null && map_process.size() > 0) {
+      monitor = PangProperties.getList(map_process.get("monitor"));
+    }
     while(iterator.hasNext()) {
       Entry<Map<String, Object>, Double> process = iterator.next();
       Map<String, Object> detail = process.getKey();
